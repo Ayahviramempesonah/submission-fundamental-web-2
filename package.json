@@ -1,0 +1,25 @@
+{
+  "name": "submission-fundamental-web",
+  "version": "1.0.0",
+  "description": "saya hanya ingin bintang 5 agar dapat melanjutkan program beasiswa ini hingga expert,mohon kiranya kritik dan saran dari reviewer untuk project ini,akan segera saya perbaiki",
+  "private": true,
+  "scripts": {
+    "build": "webpack"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "css-loader": "^7.1.2",
+    "html-webpack-plugin": "^5.6.3",
+    "prettier": "3.4.2",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.0",
+    "webpack-merge": "^6.0.1"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}
