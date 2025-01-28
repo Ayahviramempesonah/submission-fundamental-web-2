@@ -5,7 +5,6 @@ class NoteForm extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
   }
-
   connectedCallback() {
     this.render();
   }
