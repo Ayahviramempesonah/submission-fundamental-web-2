@@ -22,8 +22,10 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
+      hash:true,
       title: 'Hot Modul Replacement',
       template:'./src/index.html',
+      inject:'body',
     }),
     // new PrettierPlugin({
     //   // Opsi Prettier (Opsional)

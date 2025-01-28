@@ -4,7 +4,8 @@
   "description": "saya hanya ingin bintang 5 agar dapat melanjutkan program beasiswa ini hingga expert,mohon kiranya kritik dan saran dari reviewer untuk project ini,akan segera saya perbaiki",
   "private": true,
   "scripts": {
-    "build": "webpack"
+    "dev": "webpack serve --mode development",
+    "build": "webpack --mode production"
   },
   "keywords": [],
   "author": "",
