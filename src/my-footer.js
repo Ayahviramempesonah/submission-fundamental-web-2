@@ -1,13 +1,13 @@
 class MyFooter extends HTMLElement {
-    constructor() {
-        super();
-        this.attachShadow({mode:'open'});
-    }
-connectedCallback(){
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+  connectedCallback() {
     this.render();
-}
-render(){
-    this.shadowRoot.innerHTML =`
+  }
+  render() {
+    this.shadowRoot.innerHTML = `
     <style>
     footer{
     background-color:#333;
@@ -23,10 +23,7 @@ render(){
     <p>&copy; CopyRight ${new Date().getFullYear()} coderTamvan</p>
     </footer>
     `;
+  }
 }
 
-}
-
-
-
-customElements.define('my-footer',MyFooter);
+customElements.define('my-footer', MyFooter);

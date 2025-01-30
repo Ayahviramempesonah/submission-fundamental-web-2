@@ -10,16 +10,16 @@ class NoteForm extends HTMLElement {
   }
 
   //create custom attribute
-  static get observedAttributes(){
-    return ['note-id','note-title','note-body'];
+  static get observedAttributes() {
+    return ['note-id', 'note-title', 'note-body'];
   }
 
-  attributeChangedCallback(name,oldValue,newValue){
+  attributeChangedCallback(name, oldValue, newValue) {
     if (name === 'note-id') {
       console.log(`ID catatan: ${newValue}`);
-    }else if (name === 'note-title'){
+    } else if (name === 'note-title') {
       console.log(`judul catatan: ${newValue}`);
-    }else if (name === 'note-body'){
+    } else if (name === 'note-body') {
       console.log(`isi catatan: ${newValue}`);
     }
   }
@@ -135,17 +135,16 @@ class NoteForm extends HTMLElement {
       titleElement.textContent = note.title;
 
       const id = document.createElement('p');
-      id.textContent= `ID: ${note.id}`;
+      id.textContent = `ID: ${note.id}`;
 
       //pembuatan tanggal
       const create = document.createElement('p');
-create.textContent = `Dibuat Pada: ${new Date(note.createdAt).toLocaleDateString('id-ID', {
-    weekday: 'long', 
-    year: 'numeric',
-    month: 'long', 
-    day: 'numeric' 
-})}`;
-
+      create.textContent = `Dibuat Pada: ${new Date(note.createdAt).toLocaleDateString('id-ID', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })}`;
 
       const bodyElement = document.createElement('p');
       bodyElement.textContent = note.body;
@@ -154,11 +153,11 @@ create.textContent = `Dibuat Pada: ${new Date(note.createdAt).toLocaleDateString
       noteElement.append(id);
       noteElement.append(create);
       noteElement.append(bodyElement);
-      
+
       return noteElement;
     };
 
-    notes.forEach(note => {
+    notes.forEach((note) => {
       const noteElement = createNoteElement(note);
       listContainer.appendChild(noteElement);
     });
@@ -183,7 +182,7 @@ create.textContent = `Dibuat Pada: ${new Date(note.createdAt).toLocaleDateString
 
       // Render the updated list
       listContainer.innerHTML = ''; // Clear existing notes
-      notes.forEach(note => {
+      notes.forEach((note) => {
         const noteElement = createNoteElement(note);
         listContainer.appendChild(noteElement);
       });
@@ -195,4 +194,3 @@ create.textContent = `Dibuat Pada: ${new Date(note.createdAt).toLocaleDateString
 }
 
 customElements.define('note-form', NoteForm);
-

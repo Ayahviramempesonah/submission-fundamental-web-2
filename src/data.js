@@ -1,4 +1,4 @@
- export  const notes = [
+export const notes = [
   {
     id: 'notes-jT-jjsyz61J8XKiI',
     title: 'Welcome to Notes, Dimas!',
@@ -107,4 +107,3 @@
 ];
 
 // console.log(notesData);
-
