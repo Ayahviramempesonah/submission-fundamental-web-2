@@ -1,18 +1,18 @@
 class NoteFormApi extends HTMLElement {
-    constructor() {
-        super();
-        this.attachShadow({ mode: 'open' });
-        this.baseUrl = 'https://notes-api.dicoding.dev/v2'; // Base URL API
-    }
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.baseUrl = 'https://notes-api.dicoding.dev/v2'; // Base URL API
+  }
 
-    connectedCallback() {
-        this.render();
-        this.fetchNotes(); // Ambil data catatan saat komponen dimuat
-    }
+  connectedCallback() {
+    this.render();
+    this.fetchNotes(); // Ambil data catatan saat komponen dimuat
+  }
 
-    // Render form dan container
-    render() {
-        this.shadowRoot.innerHTML = `
+  // Render form dan container
+  render() {
+    this.shadowRoot.innerHTML = `
         <style>
           /* Gaya untuk formulir */
           .note-form {
@@ -174,201 +174,201 @@ class NoteFormApi extends HTMLElement {
         <div class="list-container" id="list-container"></div>
       `;
 
-        //  event listener untuk form
-        const form = this.shadowRoot.querySelector('form');
-        form.addEventListener('submit', (event) => {
-            event.preventDefault();
-            this.createNote();
-        });
+    //  event listener untuk form
+    const form = this.shadowRoot.querySelector('form');
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      this.createNote();
+    });
+  }
+
+  // buat fungsi loading aktif
+  showLoading() {
+    const loading = this.shadowRoot.querySelector('#loading');
+    loading.style.display = 'flex';
+  }
+
+  //sembunyikan indicator loading
+  hideLoading() {
+    const loading = this.shadowRoot.querySelector('#loading');
+    loading.style.display = 'none';
+  }
+
+  // Ambil data catatan dari API
+  async fetchNotes() {
+    this.showLoading();
+
+    try {
+      const [activeNotesResponse, archivedNotesResponse] = await Promise.all([
+        fetch(`${this.baseUrl}/notes`),
+        fetch(`${this.baseUrl}/notes/archived`),
+      ]);
+
+      const activeNotesData = await activeNotesResponse.json();
+      const archivedNotesData = await archivedNotesResponse.json();
+
+      if (activeNotesData.status === 'success' && archivedNotesData.status === 'success') {
+        const allNotes = [...activeNotesData.data, ...archivedNotesData.data];
+        this.displayNotes(allNotes);
+      } else {
+        console.error('Gagal mengambil catatan:', activeNotesData.message || archivedNotesData.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      this.hideLoading();
+    }
+  }
+
+  // Tampilkan catatan di halaman
+  displayNotes(notes) {
+    const listContainer = this.shadowRoot.querySelector('#list-container');
+    listContainer.innerHTML = ''; // Kosongkan container sebelum menambahkan catatan baru
+
+    notes.forEach((note) => {
+      const noteElement = this.createNoteElement(note);
+      listContainer.appendChild(noteElement);
+    });
+  }
+
+  // Buat elemen catatan
+  createNoteElement(note) {
+    const noteElement = document.createElement('div');
+    noteElement.classList.add('note');
+    if (note.archived) {
+      noteElement.classList.add('archived');
     }
 
-    // buat fungsi loading aktif
-    showLoading() {
-        const loading = this.shadowRoot.querySelector('#loading');
-        loading.style.display = 'flex';
+    const titleElement = document.createElement('h3');
+    titleElement.textContent = note.title;
+
+    const idElement = document.createElement('p');
+    idElement.textContent = `ID: ${note.id}`;
+
+    const createdAtElement = document.createElement('p');
+    createdAtElement.textContent = `Dibuat Pada: ${new Date(note.createdAt).toLocaleDateString('id-ID', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })}`;
+
+    const bodyElement = document.createElement('p');
+    bodyElement.textContent = note.body;
+
+    const archiveButton = document.createElement('button');
+    archiveButton.textContent = note.archived ? 'Unarchive' : 'Archive';
+    archiveButton.addEventListener('click', () => {
+      if (note.archived) {
+        this.unarchiveNote(note.id);
+      } else {
+        this.archiveNote(note.id);
+      }
+    });
+
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Hapus';
+    deleteButton.addEventListener('click', () => {
+      this.deleteNote(note.id);
+    });
+
+    noteElement.append(titleElement, idElement, createdAtElement, bodyElement, archiveButton, deleteButton);
+    return noteElement;
+  }
+
+  // Buat catatan baru
+  async createNote() {
+    const titleInput = this.shadowRoot.querySelector('#title');
+    const bodyInput = this.shadowRoot.querySelector('#body');
+
+    const newNote = {
+      title: titleInput.value,
+      body: bodyInput.value,
+    };
+
+    try {
+      const response = await fetch(`${this.baseUrl}/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newNote),
+      });
+
+      const data = await response.json();
+      if (data.status === 'success') {
+        alert('Catatan berhasil dibuat!');
+        this.fetchNotes(); // Ambil ulang data catatan
+        titleInput.value = ''; // Reset form
+        bodyInput.value = ''; // Reset form
+      } else {
+        alert('Gagal membuat catatan: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Terjadi kesalahan saat membuat catatan.');
     }
+  }
 
-    //sembunyikan indicator loading
-    hideLoading() {
-        const loading = this.shadowRoot.querySelector('#loading');
-        loading.style.display = 'none';
+  // Arsipkan catatan
+  async archiveNote(noteId) {
+    try {
+      const response = await fetch(`${this.baseUrl}/notes/${noteId}/archive`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+      if (data.status === 'success') {
+        alert('Catatan berhasil diarsipkan!');
+        this.fetchNotes(); // Ambil ulang data catatan
+      } else {
+        alert('Gagal mengarsipkan catatan: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Terjadi kesalahan saat mengarsipkan catatan.');
     }
+  }
 
-    // Ambil data catatan dari API
-    async fetchNotes() {
-        this.showLoading();
+  // Batalkan pengarsipan catatan
+  async unarchiveNote(noteId) {
+    try {
+      const response = await fetch(`${this.baseUrl}/notes/${noteId}/unarchive`, {
+        method: 'POST',
+      });
 
-        try {
-            const [activeNotesResponse, archivedNotesResponse] = await Promise.all([
-                fetch(`${this.baseUrl}/notes`),
-                fetch(`${this.baseUrl}/notes/archived`),
-            ]);
-
-            const activeNotesData = await activeNotesResponse.json();
-            const archivedNotesData = await archivedNotesResponse.json();
-
-            if (activeNotesData.status === 'success' && archivedNotesData.status === 'success') {
-                const allNotes = [...activeNotesData.data, ...archivedNotesData.data];
-                this.displayNotes(allNotes);
-            } else {
-                console.error('Gagal mengambil catatan:', activeNotesData.message || archivedNotesData.message);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        } finally {
-            this.hideLoading();
-        }
+      const data = await response.json();
+      if (data.status === 'success') {
+        alert('Catatan berhasil dibatalkan pengarsipannya!');
+        this.fetchNotes(); // Ambil ulang data catatan
+      } else {
+        alert('Gagal membatalkan pengarsipan catatan: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Terjadi kesalahan saat membatalkan pengarsipan catatan.');
     }
+  }
 
-    // Tampilkan catatan di halaman
-    displayNotes(notes) {
-        const listContainer = this.shadowRoot.querySelector('#list-container');
-        listContainer.innerHTML = ''; // Kosongkan container sebelum menambahkan catatan baru
+  // Hapus catatan
+  async deleteNote(noteId) {
+    try {
+      const response = await fetch(`${this.baseUrl}/notes/${noteId}`, {
+        method: 'DELETE',
+      });
 
-        notes.forEach((note) => {
-            const noteElement = this.createNoteElement(note);
-            listContainer.appendChild(noteElement);
-        });
+      const data = await response.json();
+      if (data.status === 'success') {
+        alert('Catatan berhasil dihapus!');
+        this.fetchNotes(); // Ambil ulang data catatan
+      } else {
+        alert('Gagal menghapus catatan: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Terjadi kesalahan saat menghapus catatan.');
     }
-
-    // Buat elemen catatan
-    createNoteElement(note) {
-        const noteElement = document.createElement('div');
-        noteElement.classList.add('note');
-        if (note.archived) {
-            noteElement.classList.add('archived');
-        }
-
-        const titleElement = document.createElement('h3');
-        titleElement.textContent = note.title;
-
-        const idElement = document.createElement('p');
-        idElement.textContent = `ID: ${note.id}`;
-
-        const createdAtElement = document.createElement('p');
-        createdAtElement.textContent = `Dibuat Pada: ${new Date(note.createdAt).toLocaleDateString('id-ID', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        })}`;
-
-        const bodyElement = document.createElement('p');
-        bodyElement.textContent = note.body;
-
-        const archiveButton = document.createElement('button');
-        archiveButton.textContent = note.archived ? 'Unarchive' : 'Archive';
-        archiveButton.addEventListener('click', () => {
-            if (note.archived) {
-                this.unarchiveNote(note.id);
-            } else {
-                this.archiveNote(note.id);
-            }
-        });
-
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Hapus';
-        deleteButton.addEventListener('click', () => {
-            this.deleteNote(note.id);
-        });
-
-        noteElement.append(titleElement, idElement, createdAtElement, bodyElement, archiveButton, deleteButton);
-        return noteElement;
-    }
-
-    // Buat catatan baru
-    async createNote() {
-        const titleInput = this.shadowRoot.querySelector('#title');
-        const bodyInput = this.shadowRoot.querySelector('#body');
-
-        const newNote = {
-            title: titleInput.value,
-            body: bodyInput.value,
-        };
-
-        try {
-            const response = await fetch(`${this.baseUrl}/notes`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newNote),
-            });
-
-            const data = await response.json();
-            if (data.status === 'success') {
-                alert('Catatan berhasil dibuat!');
-                this.fetchNotes(); // Ambil ulang data catatan
-                titleInput.value = ''; // Reset form
-                bodyInput.value = ''; // Reset form
-            } else {
-                alert('Gagal membuat catatan: ' + data.message);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat membuat catatan.');
-        }
-    }
-
-    // Arsipkan catatan
-    async archiveNote(noteId) {
-        try {
-            const response = await fetch(`${this.baseUrl}/notes/${noteId}/archive`, {
-                method: 'POST',
-            });
-
-            const data = await response.json();
-            if (data.status === 'success') {
-                alert('Catatan berhasil diarsipkan!');
-                this.fetchNotes(); // Ambil ulang data catatan
-            } else {
-                alert('Gagal mengarsipkan catatan: ' + data.message);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat mengarsipkan catatan.');
-        }
-    }
-
-    // Batalkan pengarsipan catatan
-    async unarchiveNote(noteId) {
-        try {
-            const response = await fetch(`${this.baseUrl}/notes/${noteId}/unarchive`, {
-                method: 'POST',
-            });
-
-            const data = await response.json();
-            if (data.status === 'success') {
-                alert('Catatan berhasil dibatalkan pengarsipannya!');
-                this.fetchNotes(); // Ambil ulang data catatan
-            } else {
-                alert('Gagal membatalkan pengarsipan catatan: ' + data.message);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat membatalkan pengarsipan catatan.');
-        }
-    }
-
-    // Hapus catatan
-    async deleteNote(noteId) {
-        try {
-            const response = await fetch(`${this.baseUrl}/notes/${noteId}`, {
-                method: 'DELETE',
-            });
-
-            const data = await response.json();
-            if (data.status === 'success') {
-                alert('Catatan berhasil dihapus!');
-                this.fetchNotes(); // Ambil ulang data catatan
-            } else {
-                alert('Gagal menghapus catatan: ' + data.message);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus catatan.');
-        }
-    }
+  }
 }
 
 // panggil  custom element disini
